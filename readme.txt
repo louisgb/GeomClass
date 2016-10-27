@@ -23,6 +23,9 @@ Currently support 5 types of coordinates:
   where the parts in [] are optional. If directory_containing_input_files is not given, the code will search the current directory for input files. 
 * Check the output file (out.txt in the last example)
 
+For advanced users:
+Write your own wrapper to use the GeomClass class (use main.py as an example). 
+
 --- System requirements and dependencies ---
 
 Linux (tested on CentOS release 6.8)
@@ -67,8 +70,3 @@ Calculate Wilson B and A matrices. (Better be called by displace_int2cart.py wit
   amat.txt : A matrix of nonredundant internals. The first line is the two dimensions of the matrix (3N * 3N-6). Following is the matrix. 
 
 
---- Notes ---
----- Updated Oct. 2015:
------ Added support for new internal coordinate type: out-of-plane distance.
------ 
-----------------------------

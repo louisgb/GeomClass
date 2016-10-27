@@ -26,6 +26,19 @@ CLASSES
      |      Must have read in the Cartesian, redundant int., 
      |        and nonredundant int.
      |  
+     |  calcIntCoord(self, ctype, indexstr)
+     |      Calculate an internal coordinate.
+     |      
+     |      ctype: type of internal coord. to calculate 
+     |             1 or 'bl': bond length
+     |             2 or 'ba': bond angle
+     |             3 or 'to': torsion
+     |             4 or 'ob': out-of-plane bend
+     |             5 or 'od': out-of-plane distance
+     |      indexstr: list of atom indexes (1-based) 
+     |      Return: internal coord., unit
+     |              where unit is 'Angstroms' for lengths and 'degrees' for angles
+     |  
      |  displaceCarts(self, filenameDisplNR=None, updateSelf=False, printOutput=True, fileHandleOut=<open file '<stdout>', mode 'w'>)
      |      Displace Cartesian coordinates.
      |      
@@ -39,6 +52,11 @@ CLASSES
      |      fileHandleOut: File handle to which the output is printed.
      |                     Default to standard output
      |  
+     |  printAllRedundIntCoords(self, fh=<open file '<stdout>', mode 'w'>)
+     |      Print all defined redundant internal coordinates. 
+     |      
+     |      fh: file handle for output
+     |  
      |  readAllInputs(self)
      |      Wrapper to read in all input files.
      |  
@@ -46,6 +64,8 @@ CLASSES
      |      Read in Cartesian coordinates from a file.
      |      
      |      Default filename = self.ioPath+'cart0.txt'
+     |      Note: self.carts will be a 1-D array with 3*N elements.
+     |            To get a N-by-3 matrix, use np.reshape(self.carts, (N, 3))
      |  
      |  readNonRedundIntCoords(self, filename=None)
      |      Read in definition of nonredund. int. coord. from a file.

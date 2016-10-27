@@ -9,4 +9,6 @@ if len(sys.argv) > 1:
     if ioPath[-1] != '/': ioPath += '/'
 
 geom = GeomClass.createFromAllInputs(ioPath)
-geom.displaceCarts()
+geom.displaceCarts(updateSelf=True)
+
+geom.printAllRedundIntCoords()

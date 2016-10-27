@@ -1,6 +1,6 @@
 import numpy as np
 
-#=== Aux. functions
+#== Aux. functions
 def calcBL(iatomlist, carts):
     '''Calculate bond length.
 
@@ -21,7 +21,7 @@ def calcBA(iatomlist, carts):
     unit23 = carts[iatomlist[2]]-carts[iatomlist[1]]
     unit23 = unit23/np.linalg.norm(unit23)
     cosBA = np.dot(unit21, unit23)
-    #--- avoid numerical problem
+    #-- avoid numerical problem
     if cosBA>1:
         return 0.0
     elif cosBA<-1:
@@ -50,13 +50,13 @@ def calcTO(iatomlist, carts):
     # if 15 in iatomlist:
     #     pdb.set_trace()
 
-    #--- determine sign of torsion
+    #-- determine sign of torsion
     # if np.dot(np.cross(-unit12, unit34), unit23)>0:
     if np.dot(np.cross( np.cross(unit12, unit23), np.cross(unit23, unit34) ), unit23)>0:
         sign = 1
     else:
         sign = -1
-    #--- avoid numerical problem
+    #-- avoid numerical problem
     if cosTO>1:
         return 0.0
     elif cosTO<-1:
@@ -120,7 +120,7 @@ def calcInt(nibl, niba, nito, niob, niod, ibls, ibas, itos, iobs, iods, carts):
         qs.append(calcOD(iods[i], carts))
     return np.array(qs)
 
-def skipcomment(f, char='#'):
+def skipComment(f, char='#'):
     """Skip comment lines and empty lines when reading a file
     and return the first non-comment, non-empty line.
 
@@ -130,10 +130,10 @@ def skipcomment(f, char='#'):
     while True:
         line = f.readline()
         linesplit = line.split()
-        # EOF
+        #-- EOF
         if not line:
             break
-        # comment or empty line
+        #-- comment or empty line
         elif line.startswith(char) or not linesplit:
             continue
         else:

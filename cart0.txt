@@ -2,6 +2,7 @@
 # The first line is "[number of atoms] [irun]"
 #   where if irun=0 then abmat.exe will be called and the A and B matrices will be generated, but the iterations to determine Cartesian displacements will not run.
 # Each of the following lines is "[atom symbol] [mass] [x] [y] [z]".
+# You can assume the length unit is Angstrom.
 
 4 1
 C 12   0. 0. 0.

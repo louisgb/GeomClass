@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-import displace_int2cart_aux as aux
+import geomclass_aux as aux
 import copy
 
 class GeomClass(object):
@@ -93,6 +93,8 @@ class GeomClass(object):
         """Read in Cartesian coordinates from a file.
 
         Default filename = self.ioPath+'cart0.txt'
+        Note: self.carts will be a 1-D array with 3*N elements.
+              To get a N-by-3 matrix, use np.reshape(self.carts, (N, 3))
         """
         if filename is None:
             filename = self.filenameCart
@@ -101,11 +103,11 @@ class GeomClass(object):
             self.filenameCart = filename
         #-- Read in initial Cartesian coordinates
         with open(filename, 'r') as fcart:
-            line = aux.skipcomment(fcart, '#').split()
+            line = aux.skipComment(fcart, '#').split()
             natom, irun = int(line[0]), int(line[1])
             atoms = []; masses = []; cartslist = []
             for i in xrange(natom):
-                line = aux.skipcomment(fcart, '#').split()
+                line = aux.skipComment(fcart, '#').split()
                 atoms.append(line[0])
                 masses.append(float(line[1]))
                 for j in xrange(3):
@@ -134,34 +136,34 @@ class GeomClass(object):
         iblrs, ibars, itors, iobrs, iodrs = [], [], [], [], []
         with open(filename, 'r') as f:
             #-- bond lengths
-            line = aux.skipcomment(f, '#')
+            line = aux.skipComment(f, '#')
             nblr = int(line)
             for i in xrange(nblr):
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 iblrs.append(line.split())
             #-- bends
-            line = aux.skipcomment(f, '#')
+            line = aux.skipComment(f, '#')
             nbar = int(line)
             for i in xrange(nbar):
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 ibars.append(line.split())
             #-- torsions
-            line = aux.skipcomment(f, '#')
+            line = aux.skipComment(f, '#')
             ntor = int(line)
             for i in xrange(ntor):
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 itors.append(line.split())
             #-- oop bends
-            line = aux.skipcomment(f, '#')
+            line = aux.skipComment(f, '#')
             nobr = int(line)
             for i in xrange(nobr):
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 iobrs.append(line.split())
             #-- oop distances
-            line = aux.skipcomment(f, '#')
+            line = aux.skipComment(f, '#')
             nodr = int(line)
             for i in xrange(nodr):
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 iodrs.append(line.split())
             iblrs = np.array(iblrs, dtype=int)
             ibars = np.array(ibars, dtype=int)
@@ -193,16 +195,16 @@ class GeomClass(object):
                  len(self.itors)+len(self.iobrs)+len(self.iodrs))
         with open(filename, 'r') as f:
             with open(self.ioPath+'intnrdef.txt', 'w') as fout:
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 nintnr = int(line)
-                line = aux.skipcomment(f, '#')
+                line = aux.skipComment(f, '#')
                 line = np.array(line.split(), dtype=int)
                 [nblnr, nbanr, ntonr, nobnr, nodnr] = line[:]
                 print >>fout, nintnr
                 ncount = 0
                 tmat = np.zeros((nintnr, nintr), dtype=float)
                 while ncount < nintnr:
-                    line = aux.skipcomment(f, '#')
+                    line = aux.skipComment(f, '#')
                     if '=' in line:
                         line = line.split()
                         inrstart = int(line[0])
@@ -222,9 +224,9 @@ class GeomClass(object):
                     else:
                         print >>fout, line,
                         inr = int(line.split()[0])
-                        line = aux.skipcomment(f, '#')
+                        line = aux.skipComment(f, '#')
                         line = np.array(line.split(), dtype=int)
-                        line2 = aux.skipcomment(f, '#')
+                        line2 = aux.skipComment(f, '#')
                         line2 = np.array(line2.split(), dtype=float)
                         line2 = line2/np.linalg.norm(line2)
                         #-- array index convention needs to be handled VERY CAREFULLY
@@ -369,7 +371,7 @@ class GeomClass(object):
         with open(filenameDisplNR, 'r') as fdispl:
             dqsnr = np.zeros(nintnr, dtype=float)
             while True:
-                line = aux.skipcomment(fdispl, '#')
+                line = aux.skipComment(fdispl, '#')
                 if len(line)==0:
                     break
                 line = line.split()
@@ -488,6 +490,91 @@ class GeomClass(object):
         newObject.calcABmat()
         if updateSelf:
             #-- copy so that self and returned are different objects
-            self = copy.deepcopy(newObject)
+            self.carts = cartsnew
+            self.readNonRedundIntCoords() 
+            self.calcABmat()
         return newObject
 
+
+    def calcIntCoord(self, ctype, indexstr):
+        """Calculate an internal coordinate.
+    
+        ctype: type of internal coord. to calculate 
+               1 or 'bl': bond length
+               2 or 'ba': bond angle
+               3 or 'to': torsion
+               4 or 'ob': out-of-plane bend
+               5 or 'od': out-of-plane distance
+        indexstr: list of atom indexes (1-based) 
+        Return: internal coord., unit
+                where unit is 'Angstroms' for lengths and 'degrees' for angles
+        """
+        x = np.reshape(self.carts, (len(self.atoms), 3))
+        # try:
+        indexstr = np.array(indexstr, dtype=int)-1
+        #-- primary 'torsional' coordinate for thioanisole
+        if ctype in [-1,'phi']:
+            i,j,k,l,m = 1,2,3,11,12
+            e12 = (x[j,:]-x[i,:])/aux.calcBL([i, j], x)
+            e23 = (x[k,:]-x[j,:])/aux.calcBL([j, k], x)
+            e13 = (x[k,:]-x[i,:])/aux.calcBL([i, k], x)
+            e45 = (x[m,:]-x[l,:])/aux.calcBL([l, m], x)
+            e24 = (x[l,:]-x[j,:])/aux.calcBL([j, l], x)
+            etmp = np.cross(e12, e23)
+            eZ = etmp/np.linalg.norm(etmp)
+            etmp = np.cross(e13, eZ) 
+            eX = etmp/np.linalg.norm(etmp)
+            etmp = e45-eX*np.dot(e45, eX)
+            ep = etmp/np.linalg.norm(etmp)
+            cosSP1 = np.dot(ep, e13)
+        
+            #-- determine sign
+            etmp = np.cross(e13, ep)
+            if np.dot(etmp, eX)>0:
+                sgn = 1
+            else:
+                sgn = -1
+            #-- avoid numerical problem
+            if cosSP1>1:
+                evalSP1 = 0e0
+            elif cosSP1<-1:
+                evalSP1 = sgn*np.pi
+            else:
+                evalSP1 = sgn*np.arccos(cosSP1)
+        
+            return evalSP1/np.pi*180, 'degrees'
+            
+        #-- bond length
+        elif ctype in [1,'bl']:
+            return aux.calcBL(indexstr, x), 'Angstroms'
+        #-- bond angle
+        elif ctype in [2,'ba']:
+            return aux.calcBA(indexstr, x)/np.pi*180, 'degrees'
+        #-- torsion
+        elif ctype in [3,'to']:
+            return aux.calcTO(indexstr, x)/np.pi*180, 'degrees'
+        #-- out-of-plane bend 1-2-3-4: angle b/ 1-4 & 2-4-3
+        elif ctype in [4,'ob']:
+            return aux.calcOB(indexstr, x)/np.pi*180, 'degrees'
+        #-- out-of-plane distance 1-2-3-4: distance b/ 4 & 2-4-3
+        elif ctype in [5,'od']:
+            return aux.calcOD(indexstr, x), 'Angstroms'
+        # except:
+        #     print 'Something wrong in calcIntCoord'
+        #     return None
+
+    
+    def printAllRedundIntCoords(self, fh=sys.stdout):
+        """Print all defined redundant internal coordinates. 
+
+        fh: file handle for output
+        """
+        names = ['Bond lengths', 'Bond angles', 'Torsions', 
+                 'OOP bends','OOP distances']
+        coords = [self.iblrs, self.ibars, self.itors, 
+                  self.iobrs, self.iodrs]
+        for i in xrange(len(names)):
+            print >>fh, names[i]+':'
+            for idxes in coords[i]:
+                print >>fh, '  ', idxes+1, ': ',
+                print >>fh, '% .6f %s'%self.calcIntCoord(i+1, idxes+1)
