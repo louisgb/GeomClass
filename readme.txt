@@ -1,4 +1,4 @@
-This package contains tools to displace Cartesian coordinates of a molecule according to changes in internal coordinates.
+This package contains tools to displace Cartesian coordinates of a molecule according to changes in internal coordinates. The iterative algorithm is described in Pulay et al., J. Am. Chem. Soc. 1979, 101, 2550 (DOI: 10.1021/ja00504a009).
 
 --- Usage ---
 
@@ -6,13 +6,14 @@ This package contains tools to displace Cartesian coordinates of a molecule acco
   $ make
   or 
   $ ifort -mkl -o abmat.exe abmat.f90 frommstor/frompolyrate.f90
-* Prepare the following input files:
+* Prepare the following input files and put them in a directory:
   cart0.txt: starting Cartesian coordinates to be displaced
   rdef0.txt: definition of redundant internal coordinates
   nrdef0.txt: definition of nonredundant internal coordinates, as linear combinations of redundant ones (or identical to redundant ones)
   nrdispl0.txt: displacement of nonredundant internal coordinates
 * Execute the code by running
-  $ python displace_int2cart.py >out.txt
+  $ python [directory_containing_code/]displace_int2cart.py [directory_containing_input_files] >out.txt
+  where the parts in [] are optional. If directory_containing_input_files is not given, the code will search the current directory. 
 * Check the output file (out.txt in the last example)
 
 --- System requirements and dependencies ---

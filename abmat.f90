@@ -22,17 +22,27 @@ program GB_Bmatrix_1505
        , rarraytmp(:)
   character(len=2) :: atomsym
   logical :: booltmp
-!--- open files
-  open(ifcart, file='cart.txt', action='read')
-  open(ifibl, file='ibl.txt', action='read')
-  open(ifiba, file='iba.txt', action='read')
-  open(ifito, file='ito.txt', action='read')
-  open(ifiob, file='iob.txt', action='read')
-  open(ifiod, file='iod.txt', action='read')
-  open(ifbmat, file='bmat.txt', action='write')
-  open(ifamat, file='amat.txt', action='write')
-!--- (the nacme part has been moved to nacme_cart2int.f90)
-!  open(ifnacmec, file='nacme_cart.txt', action='read')
+  character(:), allocatable :: path
+  integer :: stat
+
+!--- get file path
+  CALL GET_COMMAND_ARGUMENT(1, LENGTH=i, STATUS=stat)
+  if (stat /= 0) then
+     allocate(character(2) :: path)
+     path = './'
+  else
+     allocate(character(i) :: path)
+     CALL GET_COMMAND_ARGUMENT(1, value=path, STATUS=stat)
+  end if
+!--- open IO files
+  open(ifcart, file=path//'cart.txt', action='read')
+  open(ifibl, file=path//'ibl.txt', action='read')
+  open(ifiba, file=path//'iba.txt', action='read')
+  open(ifito, file=path//'ito.txt', action='read')
+  open(ifiob, file=path//'iob.txt', action='read')
+  open(ifiod, file=path//'iod.txt', action='read')
+  open(ifbmat, file=path//'bmat.txt', action='write')
+  open(ifamat, file=path//'amat.txt', action='write')
 !--- read in number of items
   read(ifcart, *) natom
   read(ifibl, *) nbl
@@ -45,8 +55,6 @@ program GB_Bmatrix_1505
   allocate(ibl(2,nf),iba(3,nf),ito(4,nf),iob(4,nf),iod(4,nf) &
        ,ilbe(3,nf),bm(nint,natom*3))
   allocate(x(natom),y(natom),z(natom),mass(natom*3),u(natom*3,natom*3))
-!--- (the nacme part has been moved to nacme_cart2int.f90)
-  ! allocate(nacmec(natom*3),nacmei(nint))
 !--- read in cartesian coord
   do i=1, natom
      read(ifcart, *) atomsym, rtmp, x(i), y(i), z(i)
@@ -68,18 +76,13 @@ program GB_Bmatrix_1505
   do i=1, nod
      read(ifiod, *) iod(1,i), iod(2,i), iod(3,i), iod(4,i)
   end do
-!--- read in cartesian nacme
-!--- (the nacme part has been moved to nacme_cart2int.f90)
-  ! do i=1, natom
-  !    read(ifnacmec, *) itmp, nacmec(i*3-2), nacmec(i*3-1), nacmec(i*3)
-  ! end do
 !--- calculate B matrix. Subroutine bmat from frompolyrate.f90 of mstor. 
 !--- currently only ibl(bond len), iba(bond angle), ito(torsion), iob(oop bend) are used
 !--- ilbe and t are dummy
   call bmat(NF,NBL,NBA,NTO,NOB,NOD,NLBE,IBL,IBA,ITO,IOB,IOD,ILBE &
        ,X,Y,Z,NATOM,NINT,BM,T)
 !--- write B matrix
-  open(ifbmatr, file='bmatr.txt', action='write')
+  open(ifbmatr, file=path//'bmatr.txt', action='write')
   write(ifbmatr,*) nint, natom*3
   do i=1, nint
      do j=1, natom*3
@@ -88,14 +91,10 @@ program GB_Bmatrix_1505
      write(ifbmatr,*)
   end do
 !--- if intnrdef.txt exists, transform B matrix to nonredundant coordinates
-  inquire(file='intnrdef.txt', exist=booltmp)
+  inquire(file=path//'intnrdef.txt', exist=booltmp)
   if(booltmp) then
-     open(ifnrdef, file='intnrdef.txt', action='read')
+     open(ifnrdef, file=path//'intnrdef.txt', action='read')
      read(ifnrdef, *) nintnr
-     ! if(nintnr.ne.natom*3-6) then
-     !    write(*, *) 'Number of nonredundant int. coord. != natom*3-6. Stop.'
-     !    stop
-     ! end if
      allocate(bmnr(nintnr,natom*3),tmat(nintnr,nint))
      tmat = 0d0
      do i=1, nintnr
@@ -115,7 +114,6 @@ program GB_Bmatrix_1505
      bm = bmnr
      deallocate(bmnr)
   end if
-!  write(*,*) 'debug1 before write bmat'
 !--- write B matrix
   write(ifbmat,*) nint, natom*3
   do i=1, nint
@@ -195,25 +193,8 @@ program GB_Bmatrix_1505
   do i=1, natom*3
      do j=1, nint
         write(ifamat,'(f30.10)',advance='no') amat(i,j)
-!        write(ifamat,*) amat(i,:)
      end do
      write(ifamat,*)
   end do
-  ! write(*,*)
-  ! do i=1, natom*3
-  !    write(*,'(f6.2)',advance='no') amat(i,12)
-  !    if(mod(i, 3).eq.0) write(*,*)
-  ! end do
-  ! write(*,*)
-  ! do i=1, natom*3
-  !    write(*,'(f6.2)',advance='no') amat(i,39)
-  !    if(mod(i, 3).eq.0) write(*,*)
-  ! end do
-!--- calculate internal nacme
-!--- (the nacme part has been moved to nacme_cart2int.f90)
-  ! nacmei(:) = matmul(transpose(amat(:,:)), nacmec(:))
-  ! do i=1, nint
-  !    write(*,*) nacmei(i)
-  ! end do
 
 end program GB_Bmatrix_1505
