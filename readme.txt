@@ -2,19 +2,25 @@ This package contains tools to displace Cartesian coordinates of a molecule acco
 
 --- Usage ---
 
+* Compile the Fortran code by executing
+  $ make
+  or 
+  $ ifort -mkl -o abmat.exe abmat.f90 frommstor/frompolyrate.f90
 * Prepare the following input files:
   cart0.txt: starting Cartesian coordinates to be displaced
   rdef0.txt: definition of redundant internal coordinates
-  nrdef0.txt: definition of nonredundant internal coordinates, as linear combinations of nonredundant ones (or identical to redundant ones)
+  nrdef0.txt: definition of nonredundant internal coordinates, as linear combinations of redundant ones (or identical to redundant ones)
   nrdispl0.txt: displacement of nonredundant internal coordinates
 * Execute the code by running
-  python displace_int2cart.py >out.txt
+  $ python displace_int2cart.py >out.txt
+* Check the output file (out.txt in the last example)
 
 --- System requirements and dependencies ---
 
-Intel Fortran Compiler with MKL libraries
-Python 2.7 
-NumPy
+Linux (tested on CentOS release 6.8)
+Intel Fortran Compiler with MKL libraries (tested with ifort version 13.1.3)
+Python 2.7 (tested with version 2.7.8)
+NumPy (tested with version 1.11.1)
 
 --- Components ---
 
