@@ -1,0 +1,22 @@
+# -- Definition of redundant internals ---
+# This input has 5 blocks: bond stretches, bond angles, torsions, oop bends, oop distances.
+# Each block starts with a line with a single integer n which is the number of that internal
+# Each of the following n lines has atom indexes defining one internal
+#
+# bond length
+3
+1 2
+1 3
+1 4
+# bond angle
+2
+2 1 3
+3 1 4
+# torsion
+0
+# oop bend
+0
+# oop distance
+1
+2 3 4 1
+

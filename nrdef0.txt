@@ -1,0 +1,15 @@
+# --- Definition of nonredundant internals ---
+# The first line is the number of NR internals
+# The second line has 5 numbers which are the number of bond stretches, bond angles, torsions, oop bends, oop distances.
+# The following lines can have two formats:
+#   1. "a - b = c - d" where a, b, c, d are integers. It means NR internals a to b are the same as R internals c to d
+#   2. Three lines defining one NR internal. 
+#      1st line: two integers "i n", which are "[index of NR internal] [number of R internals to define this NR internal]"
+#      2nd line: n integers, which are indexes of R internals
+#      3rd line: n floats, which are coefficients of linear combination of R internals
+# --------------------------------------------
+#
+#
+6
+3 2 0 0 1
+1 - 6 = 1 - 6

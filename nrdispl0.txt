@@ -1,0 +1,8 @@
+#--- Displacements of NR internals ---
+#--- Format: [index of NR internal] [displacement]
+#-------------------------------------
+#
+#
+6 0.3
+
+
