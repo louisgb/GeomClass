@@ -1,8 +1,10 @@
-#--- Displacements of NR internals ---
-#--- Format: [index of NR internal] [displacement]
-#-------------------------------------
+# --- Displacements of NR internals ---
+# One line for defining displacement of one nonredundant (NR) coordinate.
+# Format: [index of NR int. coord.] [displacement in Angstrom/Degree]
+# -------------------------------------
 #
-#
+1 0.1
+4 -10.0
 6 0.3
 
 

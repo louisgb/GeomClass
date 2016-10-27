@@ -1,7 +1,8 @@
-# -- Definition of redundant internals ---
+# -- Definition of redundant internal coordinates ---
+# (all indexes are 1-based)
 # This input has 5 blocks: bond stretches, bond angles, torsions, oop bends, oop distances.
-# Each block starts with a line with a single integer n which is the number of that internal
-# Each of the following n lines has atom indexes defining one internal
+# Each block starts with a line with a single integer n which is the number of that type of internal coordiantes.
+# Each of the following n lines has atom indexes (1-based) defining one internal coordinate.
 #
 # bond length
 3
