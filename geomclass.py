@@ -71,6 +71,7 @@ class GeomClass(object):
         newObject.readAllInputs()
         return newObject
 
+
     def readAllInputs(self):
         """Wrapper to read in all input files. 
 
@@ -104,7 +105,7 @@ class GeomClass(object):
         #-- Read in initial Cartesian coordinates
         with open(filename, 'r') as fcart:
             line = aux.skipComment(fcart, '#').split()
-            natom, irun = int(line[0]), int(line[1])
+            natom = int(line[0])
             atoms = []; masses = []; cartslist = []
             for i in xrange(natom):
                 line = aux.skipComment(fcart, '#').split()
@@ -324,7 +325,7 @@ class GeomClass(object):
 
 
     def displaceCarts(self, filenameDisplNR=None, updateSelf=False,
-                      printOutput=True, fileHandleOut=sys.stdout):
+                      printOutput=False, fileHandleOut=sys.stdout):
         """Displace Cartesian coordinates.
 
         filenameDisplNR: Name of input file of displacement of nonredund. int. coord.
@@ -333,7 +334,7 @@ class GeomClass(object):
                     If False, return an instance of GeomClass with updated Carts.
                     Default to False
         printOutput: Whether or not print the displaced Carts and convergence info.
-                     Default to True
+                     Default to False
         fileHandleOut: File handle to which the output is printed.
                        Default to standard output
         """
@@ -402,8 +403,8 @@ class GeomClass(object):
         while True:
             cycle += 1
             if cycle > 10:
-                print '*** Exceeds 10 iterations. Stop.                         ***'
-                print '*** Unconvergence may be due to too large displacements. ***'
+                print >>sys.stderr, '*** Exceeds 10 iterations. Stop.                         ***'
+                print >>sys.stderr, '*** Unconvergence may be due to too large displacements. ***'
                 raise RuntimeError
             #-- Calculate new internals from displaced Cartesians
             qsrnew = aux.calcInt(nblr, nbar, ntor, nobr, nodr, 
@@ -438,9 +439,23 @@ class GeomClass(object):
             #-- Check convergence in terms of max change in Cartesians
             if np.amax(np.absolute(cartsnewer-cartsnew))<1e-6:
                 if printOutput:
-                    print >>fileHandleOut, 'Converged in', cycle, 'iterations. Max Cartesian change below 1e-6.'
+                    print >>fileHandleOut, 'Algorithm converged in', cycle, 'iterations. Max Cartesian change between the last two iterations below 1e-6.'
                 break
             cartsnew = cartsnewer
+
+        #== Finalize
+        #-- new object with updated Carts
+        newObject = copy.deepcopy(self)
+        newObject.carts = cartsnew
+        #-- calculate T matrix
+        newObject.readNonRedundIntCoords() 
+        #-- calculate A and B matrices
+        newObject.calcABmat()
+        if updateSelf:
+            #-- copy so that self and returned are different objects
+            self.carts = cartsnew
+            self.readNonRedundIntCoords() 
+            self.calcABmat()
 
         #-- Print final info and Cartesian coordinates
         if printOutput:
@@ -473,26 +488,10 @@ class GeomClass(object):
             print >>fileHandleOut, 'RMS error in NR angles        = %.1e degrees'%(rmserrang)
             print >>fileHandleOut, 'Max abs error in NR internals = %.1e %s in NR internal # %d'%(
                   maxerr, uniterr, imaxerr)
+            print >>fileHandleOut
             print >>fileHandleOut, 'Final Cartesian coordinates:'
-            
-            for i in xrange(natom):
-                print >>fileHandleOut, '%2s %12.7f %12.7f %12.7f'%(
-                      atoms[i], cartsnew[i*3], cartsnew[i*3+1], 
-                      cartsnew[i*3+2])
+            newObject.printCarts(fileHandleOut)
 
-        #== Finalize
-        #-- new object with updated Carts
-        newObject = copy.deepcopy(self)
-        newObject.carts = cartsnew
-        #-- calculate T matrix
-        newObject.readNonRedundIntCoords() 
-        #-- calculate A and B matrices
-        newObject.calcABmat()
-        if updateSelf:
-            #-- copy so that self and returned are different objects
-            self.carts = cartsnew
-            self.readNonRedundIntCoords() 
-            self.calcABmat()
         return newObject
 
 
@@ -562,6 +561,20 @@ class GeomClass(object):
         # except:
         #     print 'Something wrong in calcIntCoord'
         #     return None
+
+
+    def printCarts(self, fileHandleOut=sys.stdout):
+        """Print Cartesian coordinates.
+
+        fileHandleOut: File handle to which the output is printed.
+                       Default to standard output
+        """
+        atoms = self.atoms
+        carts = self.carts
+        for i in xrange(len(atoms)):
+            print >>fileHandleOut, '%2s %12.7f %12.7f %12.7f'%(
+                  atoms[i], carts[i*3], carts[i*3+1], 
+                  carts[i*3+2])
 
     
     def printAllRedundIntCoords(self, fh=sys.stdout):
